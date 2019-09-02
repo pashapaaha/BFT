@@ -6,7 +6,7 @@ import javax.persistence.*
 data class MessageTemplate(
         @Id
         @GeneratedValue
-        val id: Long?,
+        var id: Long?,
         var messageText: String,
         @OneToMany(
                 fetch = FetchType.LAZY,

@@ -19,6 +19,19 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @PostMapping
     @Transactional
     fun add(@RequestBody messageTemplate: MessageTemplate): MessageTemplate {
+        messageTemplate.id = null
+        return saveAndPersist(messageTemplate)
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    fun update(@PathVariable id: Long, @RequestBody messageTemplate: MessageTemplate): MessageTemplate {
+        messageTemplate.id = id
+        return saveAndPersist(messageTemplate)
+    }
+
+    @Transactional
+    fun saveAndPersist(messageTemplate: MessageTemplate): MessageTemplate{
         val template = messageTemplateRepository.save(messageTemplate)
         template.parameters.forEach {
             it.messageTemplate = template
