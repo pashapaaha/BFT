@@ -6,9 +6,13 @@ import javax.persistence.*
 data class MessageTemplate(
         @Id
         @GeneratedValue
-        val id: Long,
+        val id: Long?,
         var messageText: String,
-        @OneToMany(fetch = FetchType.LAZY, mappedBy = "messageTemplate")
+        @OneToMany(
+                fetch = FetchType.LAZY,
+                mappedBy = "messageTemplate",
+                cascade = [CascadeType.ALL],
+                orphanRemoval = true)
         var parameters: List<TemplateParameter>,
         var isActive: Boolean
 )
