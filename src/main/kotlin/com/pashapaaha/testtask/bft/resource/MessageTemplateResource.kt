@@ -25,4 +25,9 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
         }
         return template
     }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    fun delete(@PathVariable id: Long) = messageTemplateRepository.deleteById(id)
+
 }
