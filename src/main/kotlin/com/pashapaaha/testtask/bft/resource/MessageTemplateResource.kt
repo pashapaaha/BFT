@@ -3,8 +3,11 @@ package com.pashapaaha.testtask.bft.resource
 import com.pashapaaha.testtask.bft.model.MessageTemplate
 import com.pashapaaha.testtask.bft.repository.MessageTemplateRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
+import java.util.regex.Pattern
 
 @RestController
 @RequestMapping("/templates")
@@ -16,18 +19,43 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @GetMapping("/{id}")
     fun get(@PathVariable id: Long) = messageTemplateRepository.findById(id)
 
+    fun findParameters(str: String): List<String>{
+        val resultArray = mutableListOf<String>()
+        val m = Pattern.compile("\\{([^}]+)}").matcher(str)
+        while (m.find()) {
+            resultArray.add(m.group(1))
+        }
+        return resultArray
+    }
+
+    fun parametersSetIsCorrect(messageTemplate: MessageTemplate): Boolean {
+
+        val parametersFromMessageText = findParameters(messageTemplate.messageText)
+        val templateParameters = messageTemplate.parameters.map{it.name}
+
+        return templateParameters.containsAll(parametersFromMessageText)
+    }
+
     @PostMapping
     @Transactional
-    fun add(@RequestBody messageTemplate: MessageTemplate): MessageTemplate {
+    fun add(@RequestBody messageTemplate: MessageTemplate): ResponseEntity<String> {
+
+        if (!parametersSetIsCorrect(messageTemplate)){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
+        }
+
         messageTemplate.id = null
-        return saveAndPersist(messageTemplate)
+        return ResponseEntity.ok(saveAndPersist(messageTemplate).toString())
     }
 
     @PutMapping("/{id}")
     @Transactional
-    fun update(@PathVariable id: Long, @RequestBody messageTemplate: MessageTemplate): MessageTemplate {
+    fun update(@PathVariable id: Long, @RequestBody messageTemplate: MessageTemplate): ResponseEntity<String> {
+        if (!parametersSetIsCorrect(messageTemplate)){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
+        }
         messageTemplate.id = id
-        return saveAndPersist(messageTemplate)
+        return ResponseEntity.ok(saveAndPersist(messageTemplate).toString())
     }
 
     @Transactional
