@@ -26,7 +26,9 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(http: HttpSecurity) {
-        http.cors().and().csrf().disable()
+        http.csrf().disable()
+                .authorizeRequests().anyRequest().authenticated()
+                .and().httpBasic()
     }
 
     @Bean

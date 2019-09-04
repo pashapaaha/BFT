@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
+
 @RestController
 @RequestMapping("/templates")
 @Api(value = "CRUD-actions", description = "The methods for creating, reading, updating and deleting templates")
