@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Async
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -13,8 +14,19 @@ import org.springframework.web.bind.annotation.*
 class GenerateResource(@Autowired val messageTemplateRepository: MessageTemplateRepository) {
 
     @ApiOperation("Generate message by template id and parameters")
-    @PostMapping("/{id}")
-    fun generateMessage(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
+    @PostMapping("/sync/{id}")
+    fun generateMessageSyncRequest(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
+        return generateMessage(id, params)
+    }
+
+    @ApiOperation("Async generate message by template id and parameters")
+    @PostMapping("/async/{id}")
+    @Async("asyncExecutor")
+    fun generateMessageAsyncRequest(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
+        return generateMessage(id, params)
+    }
+
+    fun generateMessage(id: Long, params: Map<String, Any>): ResponseEntity<String> {
         if (!messageTemplateRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
         }

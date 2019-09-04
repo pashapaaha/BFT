@@ -20,7 +20,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(web: WebSecurity) {
-        web.ignoring().antMatchers("/generate/*")
+        web.ignoring().antMatchers("/generate/**")
     }
 
     @Bean
