@@ -9,13 +9,15 @@ data class TemplateParameter(
         @Id
         @GeneratedValue
         val id: Long?,
+
         var name: String,
+
         @JsonIgnore
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "id_template")
         var messageTemplate: MessageTemplate?
 ) {
-        override fun toString(): String {
-                return name
-        }
+    override fun toString(): String {
+        return name
+    }
 }
