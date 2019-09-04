@@ -17,8 +17,13 @@ class GenerateResource(@Autowired val messageTemplateRepository: MessageTemplate
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
         }
         val template = messageTemplateRepository.findById(id).get()
-        if (!params.map { it.key }.containsAll(findParameters(template.messageText))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
+        if (!template.isActive) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Template isn't active")
+        }
+        val requiredParameters = findParameters(template.messageText)
+        if (!params.map { it.key }.containsAll(requiredParameters)) {
+            val message = "Invalid parameter set\nRequired parameters: ${requiredParameters.joinToString(separator = ",")}"
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
         }
         return ResponseEntity.ok(com.pashapaaha.testtask.bft.service.generateMessage(template, params))
     }
