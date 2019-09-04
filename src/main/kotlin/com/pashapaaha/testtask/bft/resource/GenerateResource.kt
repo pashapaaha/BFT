@@ -2,6 +2,7 @@ package com.pashapaaha.testtask.bft.resource
 
 import com.pashapaaha.testtask.bft.repository.MessageTemplateRepository
 import com.pashapaaha.testtask.bft.service.findParameters
+import com.pashapaaha.testtask.bft.service.generateMessage
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -16,17 +17,17 @@ class GenerateResource(@Autowired val messageTemplateRepository: MessageTemplate
     @ApiOperation("Generate message by template id and parameters")
     @PostMapping("/sync/{id}")
     fun generateMessageSyncRequest(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
-        return generateMessage(id, params)
+        return startGenerate(id, params)
     }
 
     @ApiOperation("Async generate message by template id and parameters")
     @PostMapping("/async/{id}")
     @Async("asyncExecutor")
     fun generateMessageAsyncRequest(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
-        return generateMessage(id, params)
+        return startGenerate(id, params)
     }
 
-    fun generateMessage(id: Long, params: Map<String, Any>): ResponseEntity<String> {
+    fun startGenerate(id: Long, params: Map<String, Any>): ResponseEntity<String> {
         if (!messageTemplateRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
         }
@@ -39,6 +40,6 @@ class GenerateResource(@Autowired val messageTemplateRepository: MessageTemplate
             val message = "Invalid parameter set\nRequired parameters: ${requiredParameters.joinToString(separator = ",")}"
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message)
         }
-        return ResponseEntity.ok(com.pashapaaha.testtask.bft.service.generateMessage(template, params))
+        return ResponseEntity.ok(generateMessage(template, params))
     }
 }
