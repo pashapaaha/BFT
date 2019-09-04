@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
+
 @RestController
 @RequestMapping("/templates")
 @Api(value = "CRUD-actions", description = "The methods for creating, reading, updating and deleting templates")
@@ -73,6 +74,9 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
         }
     }
 
+    /**
+     * Метод для сохранения в базу указанного объекта, а также присоединенных сущностей
+     */
     @Transactional
     fun saveAndPersist(messageTemplate: MessageTemplate): MessageTemplate {
         val template = messageTemplateRepository.save(messageTemplate)
