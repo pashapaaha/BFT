@@ -73,6 +73,9 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
         }
     }
 
+    /**
+     * Метод для сохранения в базу указанного объекта, а также присоединенных сущностей
+     */
     @Transactional
     fun saveAndPersist(messageTemplate: MessageTemplate): MessageTemplate {
         val template = messageTemplateRepository.save(messageTemplate)
