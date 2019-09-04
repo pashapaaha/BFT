@@ -2,6 +2,7 @@ package com.pashapaaha.testtask.bft.resource
 
 import com.pashapaaha.testtask.bft.model.MessageTemplate
 import com.pashapaaha.testtask.bft.repository.MessageTemplateRepository
+import com.pashapaaha.testtask.bft.service.generateMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,7 +20,7 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @GetMapping("/{id}")
     fun get(@PathVariable id: Long) = messageTemplateRepository.findById(id)
 
-    fun findParameters(str: String): List<String>{
+    fun findParameters(str: String): List<String> {
         val resultArray = mutableListOf<String>()
         val m = Pattern.compile("\\{([^}]+)}").matcher(str)
         while (m.find()) {
@@ -31,7 +32,7 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     fun parametersSetIsCorrect(messageTemplate: MessageTemplate): Boolean {
 
         val parametersFromMessageText = findParameters(messageTemplate.messageText)
-        val templateParameters = messageTemplate.parameters.map{it.name}
+        val templateParameters = messageTemplate.parameters.map { it.name }
 
         return templateParameters.containsAll(parametersFromMessageText)
     }
@@ -40,7 +41,7 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @Transactional
     fun add(@RequestBody messageTemplate: MessageTemplate): ResponseEntity<String> {
 
-        if (!parametersSetIsCorrect(messageTemplate)){
+        if (!parametersSetIsCorrect(messageTemplate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
         }
 
@@ -51,7 +52,7 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @PutMapping("/{id}")
     @Transactional
     fun update(@PathVariable id: Long, @RequestBody messageTemplate: MessageTemplate): ResponseEntity<String> {
-        if (!parametersSetIsCorrect(messageTemplate)){
+        if (!parametersSetIsCorrect(messageTemplate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
         }
         messageTemplate.id = id
@@ -59,7 +60,7 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     }
 
     @Transactional
-    fun saveAndPersist(messageTemplate: MessageTemplate): MessageTemplate{
+    fun saveAndPersist(messageTemplate: MessageTemplate): MessageTemplate {
         val template = messageTemplateRepository.save(messageTemplate)
         template.parameters.forEach {
             it.messageTemplate = template
@@ -71,4 +72,14 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @Transactional
     fun delete(@PathVariable id: Long) = messageTemplateRepository.deleteById(id)
 
+    @PostMapping("/generation/{id}")
+    fun generateMessage(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
+        val template = messageTemplateRepository.findById(id).get()
+
+        if (!params.map { it.key }.containsAll(findParameters(template.messageText))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
+        }
+        return ResponseEntity.ok(generateMessage(template, params))
+
+    }
 }
