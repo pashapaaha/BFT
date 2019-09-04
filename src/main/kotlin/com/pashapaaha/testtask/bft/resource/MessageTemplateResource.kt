@@ -15,10 +15,19 @@ import java.util.regex.Pattern
 class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageTemplateRepository) {
 
     @GetMapping
-    fun getAll(): MutableIterable<MessageTemplate> = messageTemplateRepository.findAll()
+    fun getAll(): ResponseEntity<Iterable<MessageTemplate>> {
+        return ResponseEntity.ok(messageTemplateRepository.findAll())
+    }
 
     @GetMapping("/{id}")
-    fun get(@PathVariable id: Long) = messageTemplateRepository.findById(id)
+    fun get(@PathVariable id: Long): ResponseEntity<String> {
+        val template = messageTemplateRepository.findById(id)
+        return if (template.isEmpty) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
+        } else {
+            ResponseEntity.ok(template.get().toString())
+        }
+    }
 
     fun findParameters(str: String): List<String> {
         val resultArray = mutableListOf<String>()
@@ -52,6 +61,9 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
     @PutMapping("/{id}")
     @Transactional
     fun update(@PathVariable id: Long, @RequestBody messageTemplate: MessageTemplate): ResponseEntity<String> {
+        if (!messageTemplateRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
+        }
         if (!parametersSetIsCorrect(messageTemplate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
         }
@@ -70,12 +82,21 @@ class MessageTemplateResource(@Autowired val messageTemplateRepository: MessageT
 
     @DeleteMapping("/{id}")
     @Transactional
-    fun delete(@PathVariable id: Long) = messageTemplateRepository.deleteById(id)
+    fun delete(@PathVariable id: Long): ResponseEntity<String> {
+        return if (messageTemplateRepository.existsById(id)) {
+            messageTemplateRepository.deleteById(id)
+            ResponseEntity.ok("Template was delete successfully")
+        } else {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
+        }
+    }
 
     @PostMapping("/generation/{id}")
     fun generateMessage(@PathVariable id: Long, @RequestBody params: Map<String, Any>): ResponseEntity<String> {
+        if (!messageTemplateRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Template is not exist")
+        }
         val template = messageTemplateRepository.findById(id).get()
-
         if (!params.map { it.key }.containsAll(findParameters(template.messageText))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid parameter set")
         }
